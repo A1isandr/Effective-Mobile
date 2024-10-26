@@ -51,7 +51,8 @@
 
                     <TimePicker
                         SelectedTime="{Binding Time, Mode=TwoWay}"
-                        BorderThickness="0"
+                        CornerRadius="10"
+                        BorderThickness="1"
                         IsEnabled="{Binding !IsSaving}"/>
                 </StackPanel>
 

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 
 namespace Frontend.ViewModels;
 
@@ -54,7 +55,7 @@ public class MainViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> SaveToFile { get; }
 
-    public ReactiveCommand<int, Unit> Filter { get; }
+    public ReactiveCommand<FilterParameters, Unit> Filter { get; }
 
     #endregion
 
@@ -71,7 +72,8 @@ public class MainViewModel : ViewModelBase
 
         Refresh = ReactiveCommand.CreateFromTask(RefreshOrdersAsync);
         SaveToFile = ReactiveCommand.CreateFromTask(SaveOrdersAsync);
-        Filter = ReactiveCommand.CreateFromTask<int>((id, _ ) => FilterOrders(id));
+        Filter = ReactiveCommand.CreateFromTask<FilterParameters>(
+            (parameters, _ ) => FilterOrders(parameters));
 
         Refresh
             .ThrownExceptions
@@ -94,9 +96,10 @@ public class MainViewModel : ViewModelBase
             .ToPropertyEx(this, x => x.IsFiltering);
 
         this
-            .WhenAnyValue(x => x.DistrictId)
-            .WhereNotNull()
-            .Throttle(TimeSpan.FromMilliseconds(100))
+            .WhenAnyValue(x => x.DistrictId, x => x.Time)
+            .Where(items => items.Item1 is not null && items.Item2 is not null)
+            .Throttle(TimeSpan.FromMilliseconds(300))
+            .Select(items => new FilterParameters(items.Item1!.Value, items.Item2!.Value))
             .ObserveOn(RxApp.MainThreadScheduler)
             .InvokeCommand(Filter);
 
@@ -107,7 +110,7 @@ public class MainViewModel : ViewModelBase
 
         this
             .WhenAnyValue(x => x.IsRefreshing, x => x.IsFiltering)
-            .Select(conditions => conditions is { Item1: true, Item2: true })
+            .Select(conditions => conditions.Item1 || conditions.Item2)
             .ToPropertyEx(this, x => x.IsBusy);
     }
 
@@ -130,7 +133,7 @@ public class MainViewModel : ViewModelBase
         await _saveToFileService.SaveAsync(Orders);
     }
 
-    private async Task FilterOrders(int districtId)
+    private async Task FilterOrders(FilterParameters parameters)
     {
         var orders = await _ordersService.GetOrdersAsync();
 
@@ -138,7 +141,9 @@ public class MainViewModel : ViewModelBase
 
         Orders.Clear();
         Orders.AddRange(orders
-            .Where(order => order.DistrictId == districtId && order.DueTime.TimeOfDay >= Time)
+            .Where(order => order.DistrictId == parameters.DistrictId &&
+                            order.DueTime.TimeOfDay >= parameters.From)
+            .OrderBy(order => order.DueTime)
             .ToList());
     }
 
