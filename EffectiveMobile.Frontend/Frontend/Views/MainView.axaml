@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:controls="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Frontend.ViewModels"
+             xmlns:models="clr-namespace:Frontend.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Frontend.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="materialIcons|MaterialIcon">
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Height" Value="25"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Panel>
+        <Grid
+           RowDefinitions="Auto, *, Auto">
+
+			<Grid
+                Grid.Row="0"
+                ColumnDefinitions="*, Auto"
+                Margin="0, 0, 0, 10">
+
+                <StackPanel
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="10">
+
+                    <materialIcons:MaterialIcon
+                        Kind="Filter"/>
+                    
+                    <TextBlock
+                        Text="District:"
+                        VerticalAlignment="Center"/>
+
+                    <TextBox
+                        Width="100"
+                        Watermark="District Id"
+                        Text="{Binding DistrictId, Mode=TwoWay, FallbackValue={x:Null}}"
+                        IsReadOnly="{Binding IsSaving}"/>
+                    
+                    <TextBlock
+                        Text="Time:"
+                        VerticalAlignment="Center"/>
+
+                    <TimePicker
+                        SelectedTime="{Binding Time, Mode=TwoWay}"
+                        BorderThickness="0"
+                        IsEnabled="{Binding !IsSaving}"/>
+                </StackPanel>
+
+                <Button x:Name="RefreshButton" Classes="Basic"
+                        Grid.Column="1">
+
+                    <materialIcons:MaterialIcon
+                        Kind="Refresh"/>
+                </Button>
+            </Grid>
+            
+            <controls:GlassCard
+                Grid.Row="1"
+                Margin="0, 0, 0, 10">
+
+                <Panel>
+					<controls:BusyArea
+                        IsBusy="{Binding IsBusy}"
+                        BusyText="Loading...">
+
+                        <DataGrid x:Name="Data"
+                            ItemsSource="{Binding Orders}"
+                            AutoGenerateColumns="True"
+                            IsReadOnly="True"
+                            CanUserReorderColumns="False"
+                            CanUserResizeColumns="True"
+                            CanUserSortColumns="True">
+                        </DataGrid>
+                    </controls:BusyArea>
+				</Panel>
+			</controls:GlassCard>
+
+            <Button x:Name="SaveButton" Classes="Flat Rounded"
+                Grid.Row="2"
+                Content="Save..."
+                HorizontalAlignment="Left"
+                theme:ButtonExtensions.ShowProgress="{Binding IsSaving}"/>
+        </Grid>
+    </Panel>
+</UserControl>

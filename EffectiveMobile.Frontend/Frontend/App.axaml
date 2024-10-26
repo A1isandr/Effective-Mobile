@@ -1,0 +1,13 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:suki="clr-namespace:SukiUI;assembly=SukiUI"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="Frontend.App"
+             RequestedThemeVariant="Default">
+
+    <Application.Styles>
+        <suki:SukiTheme ThemeColor="Blue"/>
+
+        <materialIcons:MaterialIconStyles/>
+    </Application.Styles>
+</Application>
