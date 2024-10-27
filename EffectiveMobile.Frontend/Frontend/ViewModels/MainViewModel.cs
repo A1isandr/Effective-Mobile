@@ -7,15 +7,19 @@ using ReactiveUI.Fody.Helpers;
 using SukiUI.Toasts;
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using ReactiveUI.Validation.Abstractions;
+using ReactiveUI.Validation.Contexts;
+using ReactiveUI.Validation.Extensions;
 
 namespace Frontend.ViewModels;
 
-public class MainViewModel : ViewModelBase
+public class MainViewModel : ValidationViewModelBase
 {
     #region Dependencies
 
@@ -45,7 +49,7 @@ public class MainViewModel : ViewModelBase
     public int? DistrictId { get; set; }
 
     [Reactive]
-    public TimeSpan? Time { get; set; }
+    public string? FromTime { get; set; }
 
     #endregion
 
@@ -96,10 +100,12 @@ public class MainViewModel : ViewModelBase
             .ToPropertyEx(this, x => x.IsFiltering);
 
         this
-            .WhenAnyValue(x => x.DistrictId, x => x.Time)
-            .Where(items => items.Item1 is not null && items.Item2 is not null)
+            .WhenAnyValue(x => x.DistrictId, 
+                x => x.FromTime,
+                (districtId, fromTime) => new {DistrictId = districtId, FromTime = fromTime})
             .Throttle(TimeSpan.FromMilliseconds(300))
-            .Select(items => new FilterParameters(items.Item1!.Value, items.Item2!.Value))
+            .Where(items => items.DistrictId is not null && items.FromTime is not null && !HasErrors)
+            .Select(items => new FilterParameters(items.DistrictId!.Value, TimeSpan.Parse(items.FromTime!)))
             .ObserveOn(RxApp.MainThreadScheduler)
             .InvokeCommand(Filter);
 
@@ -112,6 +118,11 @@ public class MainViewModel : ViewModelBase
             .WhenAnyValue(x => x.IsRefreshing, x => x.IsFiltering)
             .Select(conditions => conditions.Item1 || conditions.Item2)
             .ToPropertyEx(this, x => x.IsBusy);
+
+        this.ValidationRule(
+            viewModel => viewModel.FromTime,
+            time => TimeSpan.TryParse(time, CultureInfo.InvariantCulture, out _),
+            "You must specify a valid time");
     }
 
     #endregion
@@ -142,7 +153,7 @@ public class MainViewModel : ViewModelBase
         Orders.Clear();
         Orders.AddRange(orders
             .Where(order => order.DistrictId == parameters.DistrictId &&
-                            order.DueTime.TimeOfDay >= parameters.From)
+                            order.DueTime.TimeOfDay >= parameters.FromTime)
             .OrderBy(order => order.DueTime)
             .ToList());
     }

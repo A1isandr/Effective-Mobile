@@ -12,8 +12,8 @@ namespace Frontend.Test
     {
         public Task<IEnumerable<Order>?> GetOrdersAsync()
         {
-            return new Task<IEnumerable<Order>?>(() => new List<Order>
-            {
+            return new Task<IEnumerable<Order>?>(() =>
+            [
                 new Order
                 {
                     Id = 1,
@@ -21,7 +21,7 @@ namespace Frontend.Test
                     DistrictId = 1,
                     DueTime = DateTime.Now
                 }
-            });
+            ]);
         }
     }
 }

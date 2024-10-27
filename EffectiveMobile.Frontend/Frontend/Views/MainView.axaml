@@ -48,12 +48,12 @@
                     <TextBlock
                         Text="Time:"
                         VerticalAlignment="Center"/>
-
-                    <TimePicker
-                        SelectedTime="{Binding Time, Mode=TwoWay}"
-                        CornerRadius="10"
-                        BorderThickness="1"
-                        IsEnabled="{Binding !IsSaving}"/>
+                    
+                    <TextBox
+                        Width="150"
+                        Watermark="From"
+                        Text="{Binding FromTime, Mode=TwoWay, FallbackValue={x:Null}}"
+                        IsReadOnly="{Binding IsSaving}"/>
                 </StackPanel>
 
                 <Button x:Name="RefreshButton" Classes="Basic"
